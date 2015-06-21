@@ -38,7 +38,7 @@ class Method(APIConfig):
 
     def POST(self, *continue_urls):
         method = "post"
-        return json.loads(requests.get(self.add_to_url(self.get_url(), 'get', *continue_urls)).content)
+        return json.loads(requests.post(self.add_to_url(self.get_url(), 'get', *continue_urls)).content)
 
 
 class CallObject(Method):
@@ -51,4 +51,5 @@ class CallObject(Method):
             return "1"
         else:
             return "0"
+
 
