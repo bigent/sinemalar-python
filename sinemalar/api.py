@@ -15,6 +15,16 @@ class Artist(object):
         self.image = artist['image']
 
 
+class Comment(object):
+    def __init__(self, comments, index):
+        comment = comments[index]
+
+        self.id = int(comment['id'])
+        self.username = comment['username']
+        self.comment = comment['comment']
+        self.addDate = comment['addDate']
+
+
 class Movie(CallObject):
     def __init__(self, movie_id, display_artists=False, display_comments=False):
         CallObject.__init__(self)
@@ -40,11 +50,20 @@ class Movie(CallObject):
         self.embedTitle = str2bool(self.show()[self._path_name]['embedTitle'], True)
         self.trailerUrl = self.show()[self._path_name]['trailerUrl']
 
-        self.artists = []
         #artists
-        for i in self.show()['artists']:
-            index = self.show()['artists'].index(i)
-            self.artists.append(Artist(self.show()['artists'], index))
+        if display_artists:
+            self.artists = []
+            for i in self.show()['artists']:
+                index = self.show()['artists'].index(i)
+                self.artists.append(Artist(self.show()['artists'], index))
+
+        #comments
+        if display_comments:
+            self.comments = []
+            for i in self.show()['comments']:
+                index = self.show()['comments'].index(i)
+                self.comments.append(Comment(self.show()['comments'], index))
+
 
     def show(self):
         return self.GET(
