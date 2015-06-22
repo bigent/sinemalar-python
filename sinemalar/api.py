@@ -22,24 +22,36 @@ class Comment(object):
 
 
 class Movie(CallObject):
-    def __init__(self, movie_id=None, display_artists=False, display_comments=False, movie=None):
+    def __init__(self, movie_id=None, display_artists=False, display_comments=False, movie=None, to_gallery=False):
         CallObject.__init__(self)
+        self.to_gallery = to_gallery
+        self._path_name = "movie"
+        self.movie_id = movie_id
+
         if movie:
             self.id = movie['id']
             self.name = movie['name']
             self.orgName = movie['orgName']
-            self.image = movie['image']
-            self.rating = movie['rating']
+
+            try:
+                self.image = movie['image']
+                self.rating = movie['rating']
+            except:
+                pass
+
             try:
                 self.type = movie['type']
                 self.seances = movie['seances']
                 self.selected = int(movie['selected'])
             except:
                 pass
-            self.director = movie['director']
-        else:
-            self._path_name = "movie"
-            self.movie_id = movie_id
+
+            try:
+                self.director = movie['director']
+            except:
+                pass
+
+        elif not to_gallery:
             self.display_artists = display_artists
             self.display_comments = display_comments
 
@@ -70,26 +82,46 @@ class Movie(CallObject):
                 self.comments = []
                 for i in self.show()['comments']:
                     self.comments.append(Comment(i))
+        else:
+            self.gallery = []
+            for i in self.show():
+                self.gallery.append(i)
 
     def show(self):
-        return self.GET(
+        if self.to_gallery:
+            return self.GET(
+                'gallery',
                 self._path_name,
                 self.movie_id,
-                self.is_True(self.display_artists),
-                self.is_True(self.display_comments)
-        )
+            )
+        else:
+            return self.GET(
+                    self._path_name,
+                    self.movie_id,
+                    self.is_True(self.display_artists),
+                    self.is_True(self.display_comments)
+            )
 
 
 class Theatre(object):
     def __init__(self, theatre):
-        self.city = theatre['city']
         self.id = int(theatre['id'])
         self.name = theatre['name']
-        self.latitude = float(theatre['latitude'])
-        self.longitude = float(theatre['longitude'])
-        self.phone = theatre['phone']
-        self.address = theatre['address']
-        self.cityId = int(theatre['cityId'])
+
+        try:
+            self.seances = theatre['seances']
+            self.selected = theatre['selected']
+        except:
+            pass
+
+        try:
+            self.city = theatre['city']
+            self.latitude = float(theatre['latitude'])
+            self.longitude = float(theatre['longitude'])
+            self.phone = theatre['phone']
+            self.address = theatre['address']
+        except:
+            pass
 
         try:
             self.ad = theatre['ad']
@@ -98,6 +130,17 @@ class Theatre(object):
             self.movies = []
             for i in theatre['movies']:
                 self.movies.append(Movie(i))
+        except:
+            del self.movies
+
+        try:
+            self.town = theatre['town']
+            self.distance = theatre['distance']
+        except:
+            pass
+
+        try:
+            self.cityId = int(theatre['cityId'])
         except:
             pass
 
@@ -131,6 +174,28 @@ class Theatres(CallObject):
                     self._path_name,
                     self.theatre_id,
             )[0]
+
+
+class NearTheatre(CallObject):
+    def __init__(self, lat=0, long=0):
+        CallObject.__init__(self)
+        self._path_name = "nearTheatre"
+        self.latitude = lat
+        self.longitude = long
+
+        self.tenPlus = self.show()['tenPlus']
+
+        self.theatres = []
+        for i in self.show()['five']:
+            self.theatres.append(Theatre(i))
+
+    def show(self):
+        return self.GET(
+            "gps",
+            self._path_name,
+            self.latitude,
+            self.longitude
+        )
 
 
 class City(object):
@@ -182,4 +247,53 @@ class PlayingMovies(CallObject):
 class PlayingMoviesRemain(PlayingMovies):
     def __init__(self):
         PlayingMovies.__init__(self)
-        self._path_name = "PlayingMoviesRemain"
+        self._path_name = "playingMoviesRemain"
+
+
+class ComingSoon(PlayingMovies):
+    def __init__(self):
+        PlayingMovies.__init__(self)
+        self._path_name = "comingSoon"
+
+
+class NearestSeances(CallObject):
+    def __init__(self, movie_id, lat=0, long=0):
+        CallObject.__init__(self)
+        self._path_name = "seance"
+        self.movie_id = movie_id
+        self.latitude = lat
+        self.longitude = long
+
+        self.seances = self.show()['seances']
+        self.selected = self.show()['selected']
+        self.cinema = Theatre(self.show()['cinema'])
+
+    def show(self):
+        return self.GET(
+            "gps",
+            self._path_name,
+            self.latitude,
+            self.longitude,
+            self.movie_id
+        )
+
+
+class TheatreSeance(CallObject):
+    def __init__(self, city_id, movie_id):
+        CallObject.__init__(self)
+        self._path_name = "theatreSeance"
+        self.city_id = city_id
+        self.movie_id = movie_id
+
+        self.movie = Movie(movie=self.show()['movie'])
+
+        self.theatres = []
+        for i in self.show()['theatre']:
+            self.theatres.append(Theatre(i))
+
+    def show(self):
+        return self.GET(
+            self._path_name,
+            self.city_id,
+            self.movie_id
+        )

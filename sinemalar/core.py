@@ -43,6 +43,8 @@ class Method(APIConfig):
 
         if self.api_domain == "www.sinemalar.com":
             return json.loads(requests.get(self.add_to_url(self.get_url(), *continue_urls)).content)
+        elif continue_urls[0] == "gallery" or continue_urls[0] == "gps":
+            return json.loads(requests.get(self.add_to_url(self.get_url(), *continue_urls)).content)
         else:
             return json.loads(requests.get(self.add_to_url(self.get_url(), 'get', *continue_urls)).content)
 
