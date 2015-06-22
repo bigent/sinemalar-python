@@ -9,16 +9,22 @@ class APIConfig(object):
         if api_protocol not in ('http', 'https'):
             raise ValueError("The protocol must be 'http' or 'https'.")
 
-        self._api_domain = api_domain
+        self.api_domain = api_domain
         self._api_protocol = api_protocol
         self._api_version = api_version
 
     def get_url(self):
-        return "{protocol}://{domain}/ajax/json/ios/{version}".format(
-            protocol=self._api_protocol,
-            domain=self._api_domain,
-            version=self._api_version,
-        )
+        if self.api_domain == "www.sinemalar.com":
+            return "{protocol}://{domain}/json/mobile".format(
+                protocol=self._api_protocol,
+                domain=self.api_domain,
+            )
+        else:
+            return "{protocol}://{domain}/ajax/json/ios/{version}".format(
+                protocol=self._api_protocol,
+                domain=self.api_domain,
+                version=self._api_version,
+            )
 
 
 class Method(APIConfig):
@@ -34,7 +40,11 @@ class Method(APIConfig):
 
     def GET(self, *continue_urls):
         method = "get"
-        return json.loads(requests.get(self.add_to_url(self.get_url(), 'get', *continue_urls)).content)
+
+        if self.api_domain == "www.sinemalar.com":
+            return json.loads(requests.get(self.add_to_url(self.get_url(), *continue_urls)).content)
+        else:
+            return json.loads(requests.get(self.add_to_url(self.get_url(), 'get', *continue_urls)).content)
 
     def POST(self, *continue_urls):
         method = "post"

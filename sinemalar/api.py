@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import json
 
 from .core import CallObject
 from . import str2bool
 
 
 class Artist(object):
-    def __init__(self, artists, index):
-        artist = artists[index]
-
+    def __init__(self, artist):
         self.id = int(artist['id'])
         self.nameSurname = artist['nameSurname']
         self.characterName = str2bool(artist['characterName'], True)
@@ -17,9 +14,7 @@ class Artist(object):
 
 
 class Comment(object):
-    def __init__(self, comments, index):
-        comment = comments[index]
-
+    def __init__(self, comment):
         self.id = int(comment['id'])
         self.username = comment['username']
         self.comment = comment['comment']
@@ -27,28 +22,27 @@ class Comment(object):
 
 
 class Movie(CallObject):
-    def __init__(self, movie_id=0, display_artists=False, display_comments=False, movies=[], index=0):
+    def __init__(self, movie_id=None, display_artists=False, display_comments=False, movie=None):
         CallObject.__init__(self)
-
-        if movies:
-            movie = movies[index]
-
+        if movie:
             self.id = movie['id']
             self.name = movie['name']
             self.orgName = movie['orgName']
             self.image = movie['image']
             self.rating = movie['rating']
+            try:
+                self.type = movie['type']
+                self.seances = movie['seances']
+                self.selected = int(movie['selected'])
+            except:
+                pass
             self.director = movie['director']
-            self.seances = movie['seances']
-            self.selected = int(movie['selected'])
         else:
-
             self._path_name = "movie"
             self.movie_id = movie_id
             self.display_artists = display_artists
             self.display_comments = display_comments
 
-            #movie
             self.id = self.show()[self._path_name]['id']
             self.name = self.show()[self._path_name]['name']
             self.orgName = self.show()[self._path_name]['orgName']
@@ -69,15 +63,13 @@ class Movie(CallObject):
             if display_artists:
                 self.artists = []
                 for i in self.show()['artists']:
-                    index = self.show()['artists'].index(i)
-                    self.artists.append(Artist(self.show()['artists'], index))
+                    self.artists.append(Artist(i))
 
             #comments
             if display_comments:
                 self.comments = []
                 for i in self.show()['comments']:
-                    index = self.show()['comments'].index(i)
-                    self.comments.append(Comment(self.show()['comments'], index))
+                    self.comments.append(Comment(i))
 
     def show(self):
         return self.GET(
@@ -88,31 +80,106 @@ class Movie(CallObject):
         )
 
 
-class Theatre(CallObject):
-    def __init__(self, theatre_id):
+class Theatre(object):
+    def __init__(self, theatre):
+        self.city = theatre['city']
+        self.id = int(theatre['id'])
+        self.name = theatre['name']
+        self.latitude = float(theatre['latitude'])
+        self.longitude = float(theatre['longitude'])
+        self.phone = theatre['phone']
+        self.address = theatre['address']
+        self.cityId = int(theatre['cityId'])
+
+        try:
+            self.ad = theatre['ad']
+
+            #seances
+            self.movies = []
+            for i in theatre['movies']:
+                self.movies.append(Movie(i))
+        except:
+            pass
+
+
+class Theatres(CallObject):
+    def __init__(self, theatre_id=0, city_id=0, city_count=1000):
         CallObject.__init__(self)
         self._path_name = "theatre"
         self.theatre_id = theatre_id
+        self.city_id = city_id
+        self.city_count = city_count
 
-        #theatre
-        self.city = self.show()['city']
-        self.id = self.show()['id']
-        self.name = self.show()['name']
-        self.latitude = self.show()['latitude']
-        self.longitude = self.show()['longitude']
-        self.phone = self.show()['phone']
-        self.address = self.show()['address']
-        self.cityId = self.show()['cityId']
-        self.ad = self.show()['ad']
+        if city_id:
+            self.theatres = []
+            for i in self.show():
+                self.theatres.append(Theatre(i))
+        else:
+            self.theatre = Theatre(self.show())
 
-        #seances
-        self.movies = []
-        for i in self.show()['movies']:
-            index = self.show()['movies'].index(i)
-            self.movies.append(Movie(movies=self.show()['movies'], index=index))
+    def show(self):
+        if self.city_id:
+            return self.GET(
+                self._path_name,
+                0,
+                1,
+                self.city_id,
+                self.city_count
+            )[0]
+        else:
+            return self.GET(
+                    self._path_name,
+                    self.theatre_id,
+            )[0]
+
+
+class City(object):
+    def __init__(self, city):
+        self.id = int(city['id'])
+        self.name = city['name']
+
+
+class Cities(CallObject):
+    def __init__(self, many=0):
+        CallObject.__init__(self)
+        self._path_name = "cities"
+        self.many = many
+
+        #cities
+        self.cities = []
+        for i in self.show():
+            self.cities.append(City(city=i))
 
     def show(self):
         return self.GET(
                 self._path_name,
-                self.theatre_id,
-        )[0]
+                self.many,
+        )
+
+
+class PlayingMovies(CallObject):
+    def __init__(self):
+        CallObject.__init__(self)
+        self.api_domain = "www.sinemalar.com"
+
+        self._path_name = "playingMovies"
+
+        self.sections = []
+        for i in self.show()['sections']:
+            self.sections.append(i)
+
+        self.movies = []
+        for i in self.show()['movies']:
+            for z in i:
+                self.movies.append(Movie(movie=z))
+
+    def show(self):
+        return self.GET(
+                self._path_name,
+        )
+
+
+class PlayingMoviesRemain(PlayingMovies):
+    def __init__(self):
+        PlayingMovies.__init__(self)
+        self._path_name = "PlayingMoviesRemain"
