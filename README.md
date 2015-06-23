@@ -68,11 +68,4 @@ http://www.sinemalar.com/sinemasalonlari/164/istanbul-avrupa
 #####city_count
 <p>A count of displaying.</p>
 
-###NearTheatre
-####Find the nearest theatres
-```python
->>> from sinemalar.api import NearTheatre
->>> theatres = NearTheatre(lat=30, long=35).theatres
->>> print(theatres)
-Başakşehir Merkez Kayaşehir
-```
+###Cities
