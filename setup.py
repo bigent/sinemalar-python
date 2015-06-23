@@ -9,7 +9,7 @@ def local_requirements():
 
 setup(name='sinemalar',
       version='0.1',
-      description='An object-oriented Python 2.7+ library for accessing the Steam Web API',
+      description='',
       url='https://github.com/bigent/sinemalar-python',
       author='bigent',
       author_email='',
