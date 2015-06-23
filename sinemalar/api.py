@@ -29,8 +29,8 @@ class Comment(object):
 
 
 class Movie(CallObject):
-    def __init__(self, movie_id=None, display_artists=False, display_comments=False, movie=None, to_gallery=False):
-        if type(movie_id) is not int or movie_id is not None:
+    def __init__(self, movie_id=0, display_artists=False, display_comments=False, movie=None, to_gallery=False):
+        if type(movie_id) is not int:
             raise TypeError("Type of 'movie_id' must be 'int'.")
 
         if movie and movie_id:
@@ -146,7 +146,7 @@ class Theatre(object):
                 self.seances.append(datetime.datetime.strptime(i, '%H:%M'))
             self.selected = theatre['selected']
         except:
-            del self.seances
+             pass
 
         try:
             self.city = theatre['city']
@@ -165,7 +165,7 @@ class Theatre(object):
             for i in theatre['movies']:
                 self.movies.append(Movie(i))
         except:
-            del self.movies
+            pass
 
         try:
             self.town = theatre['town']
@@ -217,7 +217,7 @@ class Theatres(CallObject):
                 1,
                 self.city_id,
                 self.city_count
-            )[0]
+            )
         else:
             return self.GET(
                     self._path_name,
