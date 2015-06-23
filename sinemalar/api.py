@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import datetime
 
 from .core import CallObject
 from . import str2bool
@@ -7,6 +8,9 @@ from . import str2bool
 
 class Artist(object):
     def __init__(self, artist):
+        if type(artist) is not dict:
+            raise TypeError("Type of 'artist' must be 'dict'.")
+
         self.id = int(artist['id'])
         self.nameSurname = artist['nameSurname']
         self.characterName = str2bool(artist['characterName'], True)
@@ -15,33 +19,50 @@ class Artist(object):
 
 class Comment(object):
     def __init__(self, comment):
+        if type(comment) is not dict:
+            raise TypeError("Type of 'comment' must be 'dict'.")
+
         self.id = int(comment['id'])
         self.username = comment['username']
         self.comment = comment['comment']
-        self.addDate = comment['addDate']
+        self.addDate = datetime.datetime.strptime(comment['addDate'], '%Y-%m-%d %H:%M:%S')
 
 
 class Movie(CallObject):
     def __init__(self, movie_id=None, display_artists=False, display_comments=False, movie=None, to_gallery=False):
+        if type(movie_id) is not int or movie_id is not None:
+            raise TypeError("Type of 'movie_id' must be 'int'.")
+
+        if movie and movie_id:
+            raise ValueError("Only one can set a value.")
+
+        if not movie and not movie_id:
+            raise ValueError("You should set a value to 'movie_id' or 'movie'.")
+
         CallObject.__init__(self)
         self.to_gallery = to_gallery
         self._path_name = "movie"
         self.movie_id = movie_id
 
         if movie:
+            if type(movie) is not dict:
+                raise TypeError("Type of 'movie' must be 'dict'.")
+
             self.id = movie['id']
             self.name = movie['name']
             self.orgName = movie['orgName']
 
             try:
                 self.image = movie['image']
-                self.rating = movie['rating']
+                self.rating = float(movie['rating'])
             except:
                 pass
 
             try:
                 self.type = movie['type']
-                self.seances = movie['seances']
+                self.seances = []
+                for i in movie['seances']:
+                    self.seances.append(datetime.datetime.strptime(i, '%H:%M'))
                 self.selected = int(movie['selected'])
             except:
                 pass
@@ -52,19 +73,25 @@ class Movie(CallObject):
                 pass
 
         elif not to_gallery:
+            if display_artists is not True or display_artists is not False:
+                raise TypeError("Type of 'display_artist' must be 'boolean'.")
+
+            if display_comments is not True or display_comments is not False:
+                raise TypeError("Type of 'display_comments' must be 'boolean'.")
+
             self.display_artists = display_artists
             self.display_comments = display_comments
 
-            self.id = self.show()[self._path_name]['id']
+            self.id = int(self.show()[self._path_name]['id'])
             self.name = self.show()[self._path_name]['name']
             self.orgName = self.show()[self._path_name]['orgName']
             self.image = self.show()[self._path_name]['image']
-            self.rating = self.show()[self._path_name]['rating']
+            self.rating = float(self.show()[self._path_name]['rating'])
             self.type = self.show()[self._path_name]['type']
             self.director = self.show()[self._path_name]['director']
             self.summary = str2bool(self.show()[self._path_name]['summary'], True)
             self.duration = str2bool(self.show()[self._path_name]['duration'], True)
-            self.produceYear = self.show()[self._path_name]['produceYear']
+            self.produceYear = int(self.show()[self._path_name]['produceYear'])
             self.week = str2bool(self.show()[self._path_name]['week'], True)
             self.pubDate = str2bool(self.show()[self._path_name]['pubDate'], True)
             self.embedId = str2bool(self.show()[self._path_name]['embedId'], True)
@@ -83,6 +110,8 @@ class Movie(CallObject):
                 for i in self.show()['comments']:
                     self.comments.append(Comment(i))
         else:
+            if to_gallery is not True or to_gallery is not False:
+                raise TypeError("Type of 'to_gallery' must be 'boolean'.")
             self.gallery = []
             for i in self.show():
                 self.gallery.append(i)
@@ -105,14 +134,19 @@ class Movie(CallObject):
 
 class Theatre(object):
     def __init__(self, theatre):
+        if type(theatre) is not dict:
+            raise TypeError("Type of 'theatre' must be 'dict'.")
+
         self.id = int(theatre['id'])
         self.name = theatre['name']
 
         try:
-            self.seances = theatre['seances']
+            self.seances = []
+            for i in theatre['seances']:
+                self.seances.append(datetime.datetime.strptime(i, '%H:%M'))
             self.selected = theatre['selected']
         except:
-            pass
+            del self.seances
 
         try:
             self.city = theatre['city']
@@ -147,6 +181,21 @@ class Theatre(object):
 
 class Theatres(CallObject):
     def __init__(self, theatre_id=0, city_id=0, city_count=1000):
+        if type(theatre_id) is not int:
+            raise TypeError("Type of 'theatre_id' must be 'int'.")
+
+        if type(city_id) is not int:
+            raise TypeError("Type of 'city_id' must be 'int'.")
+
+        if type(city_count) is not int:
+            raise TypeError("Type of 'city_count' must be 'int'.")
+
+        if theatre_id and city_id:
+            raise ValueError("Only one can set a value.")
+
+        if not theatre_id and not city_id:
+            raise ValueError("You should set a value to 'theatre_id' or 'city_id'.")
+
         CallObject.__init__(self)
         self._path_name = "theatre"
         self.theatre_id = theatre_id
@@ -178,12 +227,18 @@ class Theatres(CallObject):
 
 class NearTheatre(CallObject):
     def __init__(self, lat=0, long=0):
+        if type(lat) is not float or type(lat) is not int:
+            raise TypeError("Type of 'lat' must be 'float' or 'int'.")
+
+        if type(long) is not float or type(long) is not int:
+            raise TypeError("Type of 'long' must be 'float' or 'int'.")
+
         CallObject.__init__(self)
         self._path_name = "nearTheatre"
         self.latitude = lat
         self.longitude = long
 
-        self.tenPlus = self.show()['tenPlus']
+        self.tenPlus = str2bool(self.show()['tenPlus'], True)
 
         self.theatres = []
         for i in self.show()['five']:
@@ -200,12 +255,18 @@ class NearTheatre(CallObject):
 
 class City(object):
     def __init__(self, city):
+        if type(city) is not dict:
+            raise TypeError("Type of 'city' must be 'dict'.")
+
         self.id = int(city['id'])
         self.name = city['name']
 
 
 class Cities(CallObject):
     def __init__(self, many=0):
+        if type(many) is not int:
+            raise TypeError("Type of 'many' must be 'int'.")
+
         CallObject.__init__(self)
         self._path_name = "cities"
         self.many = many
@@ -258,13 +319,24 @@ class ComingSoon(PlayingMovies):
 
 class NearestSeances(CallObject):
     def __init__(self, movie_id, lat=0, long=0):
+        if type(movie_id) is not int:
+            raise TypeError("Type of 'movie_id' must be 'int'.")
+
+        if type(lat) is not float or type(lat) is not int:
+            raise TypeError("Type of 'lat' must be 'float' or 'int'.")
+
+        if type(long) is not float or type(long) is not int:
+            raise TypeError("Type of 'long' must be 'float' or 'int'.")
+
         CallObject.__init__(self)
         self._path_name = "seance"
         self.movie_id = movie_id
         self.latitude = lat
         self.longitude = long
 
-        self.seances = self.show()['seances']
+        self.seances = []
+        for i in self.show()['seances']:
+            self.seances.append(datetime.datetime.strptime(i, '%H:%M'))
         self.selected = self.show()['selected']
         self.cinema = Theatre(self.show()['cinema'])
 
@@ -280,6 +352,12 @@ class NearestSeances(CallObject):
 
 class TheatreSeance(CallObject):
     def __init__(self, city_id, movie_id):
+        if type(city_id) is not int:
+            raise TypeError("Type of 'city_id' must be 'int'.")
+
+        if type(movie_id) is not int:
+            raise TypeError("Type of 'movie_id' must be 'int'.")
+
         CallObject.__init__(self)
         self._path_name = "theatreSeance"
         self.city_id = city_id
@@ -296,4 +374,25 @@ class TheatreSeance(CallObject):
             self._path_name,
             self.city_id,
             self.movie_id
+        )
+
+
+class ArtistGallery(CallObject):
+    def __init__(self, artist_id):
+        if type(artist_id) is not int:
+            raise TypeError("Type of 'artist_id' must be 'int'.")
+
+        CallObject.__init__(self)
+        self._path_name = "artist"
+        self.artist_id = artist_id
+
+        self.gallery = []
+        for i in self.show():
+            self.gallery.append(i)
+
+    def show(self):
+        return self.GET(
+            "gallery",
+            self._path_name,
+            self.artist_id
         )
