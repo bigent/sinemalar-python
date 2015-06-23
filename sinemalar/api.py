@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import datetime
+import datetime, json
+import requests
 
 from .core import CallObject
 from . import str2bool
@@ -73,10 +74,10 @@ class Movie(CallObject):
                 pass
 
         elif not to_gallery:
-            if display_artists is not True or display_artists is not False:
+            if type(display_artists) is not bool:
                 raise TypeError("Type of 'display_artist' must be 'boolean'.")
 
-            if display_comments is not True or display_comments is not False:
+            if type(display_comments) is not bool:
                 raise TypeError("Type of 'display_comments' must be 'boolean'.")
 
             self.display_artists = display_artists
@@ -226,19 +227,21 @@ class Theatres(CallObject):
 
 
 class NearTheatre(CallObject):
-    def __init__(self, lat=0, long=0):
-        if type(lat) is not float or type(lat) is not int:
-            raise TypeError("Type of 'lat' must be 'float' or 'int'.")
+    def __init__(self, latitude=30.0, longitude=30.0):
+        if type(latitude) is not float:
+            if type(latitude) is not int:
+                raise TypeError("Type of 'lat' must be 'float' or 'int'.")
 
-        if type(long) is not float or type(long) is not int:
-            raise TypeError("Type of 'long' must be 'float' or 'int'.")
+        if type(longitude) is not float:
+            if type(longitude) is not int:
+                raise TypeError("Type of 'long' must be 'float' or 'int'.")
 
         CallObject.__init__(self)
         self._path_name = "nearTheatre"
-        self.latitude = lat
-        self.longitude = long
+        self._latitude = str(latitude)
+        self._longitude = str(longitude)
 
-        self.tenPlus = str2bool(self.show()['tenPlus'], True)
+        self.tenPlus = self.show()['tenPlus']
 
         self.theatres = []
         for i in self.show()['five']:
@@ -248,8 +251,8 @@ class NearTheatre(CallObject):
         return self.GET(
             "gps",
             self._path_name,
-            self.latitude,
-            self.longitude
+            self._latitude,
+            self._longitude
         )
 
 
