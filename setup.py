@@ -1,3 +1,4 @@
+__author__ = 'bigent'
 from setuptools import setup
 
 def local_requirements():
