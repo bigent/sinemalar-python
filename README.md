@@ -141,3 +141,40 @@ http://www.sinemalar.com/film/356/baskalarinin-hayati
 http://www.sinemalar.com/sanatci/artist_id/artist_name
 http://www.sinemalar.com/sanatci/26396/christopher-nolan
 ```
+
+###NearTheatre
+####Learn the nearest theatres to the location
+```python
+>>> from sinemalar.api import NearTheatre
+>>> theatres = NearTheatre(lat=41, lng=30).theatres
+>>> print(theatres[0].id)
+1373
+```
+
+#####lat
+<p>Latitude of the location</p>
+
+#####lng
+<p>Longitude of the location</p>
+
+###NearestSeances
+####Learn the nearest theatre and seances of the theatre to the location
+```python
+>>> from sinemalar.api import NearestSeances
+>>> seances = NearestSeances(movie_id=219826, lat=41.0, lng=30.0)
+>>> print(seances.cinema.name.encode('utf-8'))
+Kocaeli Dolphin
+```
+
+#####movie_id
+<p>The movie ID in sinemalar.com</p>
+```
+http://www.sinemalar.com/film/movie_id/movie_name
+http://www.sinemalar.com/film/356/baskalarinin-hayati
+```
+
+#####lat
+<p>Latitude of the location</p>
+
+#####lng
+<p>Longitude of the location</p>
