@@ -141,7 +141,7 @@ class Theatre(object):
 
         try:
             self.seances = []
-            for i in theatre['seances']:
+            for i in theatre['seances'][0]:
                 self.seances.append(datetime.datetime.strptime(i, '%H:%M'))
             self.selected = theatre['selected']
         except:
@@ -225,25 +225,30 @@ class Theatres(CallObject):
 
 
 class NearTheatre(CallObject):
-    def __init__(self, latitude=30.0, longitude=30.0):
-        if type(latitude) is not float:
-            if type(latitude) is not int:
+    def __init__(self, lat=41.0, lng=30.0):
+        if type(lat) is not float:
+            if type(lat) is not int:
                 raise TypeError("Type of 'lat' must be 'float' or 'int'.")
 
-        if type(longitude) is not float:
-            if type(longitude) is not int:
-                raise TypeError("Type of 'long' must be 'float' or 'int'.")
+        if type(lng) is not float:
+            if type(lng) is not int:
+                raise TypeError("Type of 'lng' must be 'float' or 'int'.")
 
         CallObject.__init__(self)
         self._path_name = "nearTheatre"
-        self._latitude = str(latitude)
-        self._longitude = str(longitude)
+        self._latitude = str(lat)
+        self._longitude = str(lng)
 
-        self.tenPlus = self.show()['tenPlus']
+        if str2bool(self.show()['tenPlus'], True) is not False:
+            self.theatres = []
+            for i in self.show()['tenPlus']:
 
-        self.theatres = []
-        for i in self.show()['five']:
-            self.theatres.append(Theatre(i))
+                self.theatres.append(Theatre(i))
+
+        if str2bool(self.show()['five'], True) is not False:
+            self.theatres = []
+            for i in self.show()['five']:
+                self.theatres.append(Theatre(i))
 
     def show(self):
         return self.GET(
@@ -264,13 +269,9 @@ class City(object):
 
 
 class Cities(CallObject):
-    def __init__(self, many=0):
-        if type(many) is not int:
-            raise TypeError("Type of 'many' must be 'int'.")
-
+    def __init__(self):
         CallObject.__init__(self)
         self._path_name = "cities"
-        self.many = many
 
         #cities
         self.cities = []
@@ -280,7 +281,7 @@ class Cities(CallObject):
     def show(self):
         return self.GET(
                 self._path_name,
-                self.many,
+                "0",
         )
 
 
@@ -319,21 +320,23 @@ class ComingSoon(PlayingMovies):
 
 
 class NearestSeances(CallObject):
-    def __init__(self, movie_id, lat=0, long=0):
+    def __init__(self, movie_id, lat=41.0, lng=30.0):
         if type(movie_id) is not int:
             raise TypeError("Type of 'movie_id' must be 'int'.")
 
-        if type(lat) is not float or type(lat) is not int:
-            raise TypeError("Type of 'lat' must be 'float' or 'int'.")
+        if type(lat) is not float:
+            if type(lat) is not int:
+                raise TypeError("Type of 'lat' must be 'float' or 'int'.")
 
-        if type(long) is not float or type(long) is not int:
-            raise TypeError("Type of 'long' must be 'float' or 'int'.")
+        if type(lng) is not float:
+            if type(lng) is not int:
+                raise TypeError("Type of 'lng' must be 'float' or 'int'.")
 
         CallObject.__init__(self)
         self._path_name = "seance"
         self.movie_id = movie_id
-        self.latitude = lat
-        self.longitude = long
+        self._latitude = str(lat)
+        self._longitude = str(lng)
 
         self.seances = []
         for i in self.show()['seances']:
@@ -345,8 +348,8 @@ class NearestSeances(CallObject):
         return self.GET(
             "gps",
             self._path_name,
-            self.latitude,
-            self.longitude,
+            self._latitude,
+            self._longitude,
             self.movie_id
         )
 
