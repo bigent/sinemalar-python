@@ -81,7 +81,10 @@ class Movie(CallObject):
             self.display_artists = display_artists
             self.display_comments = display_comments
 
-            self.id = int(self.show()[self._path_name]['id'])
+            if str2bool(self.show()[self._path_name]['id'], True):
+                self.id = int(self.show()[self._path_name]['id'])
+            else:
+                raise ValueError("Not found any movie of this ID.")
             self.name = self.show()[self._path_name]['name']
             self.orgName = self.show()[self._path_name]['orgName']
             self.image = self.show()[self._path_name]['image']
@@ -109,11 +112,16 @@ class Movie(CallObject):
                 for i in self.show()['comments']:
                     self.comments.append(Comment(i))
         else:
-            if to_gallery is not True or to_gallery is not False:
+            print type(to_gallery)
+            if type(to_gallery) is not bool:
                 raise TypeError("Type of 'to_gallery' must be 'boolean'.")
             self.gallery = []
-            for i in self.show():
-                self.gallery.append(i)
+
+            if str2bool(self.show(), True):
+                for i in self.show():
+                    self.gallery.append(i)
+            else:
+                raise ValueError("Not found any movie of this ID.")
 
     def show(self):
         if self.to_gallery:
@@ -202,11 +210,17 @@ class Theatres(CallObject):
         self.city_count = city_count
 
         if city_id:
-            self.theatres = []
-            for i in self.show():
-                self.theatres.append(Theatre(i))
+            if str2bool(self.show()[0]['id'], True):
+                self.theatres = []
+                for i in self.show():
+                    self.theatres.append(Theatre(i))
+            else:
+                raise ValueError("Not found any city of this ID.")
         else:
-            self.theatre = Theatre(self.show())
+            if str2bool(self.show()[0]['id'], True):
+                self.theatre = Theatre(self.show())
+            else:
+                raise ValueError("Not found any theatre of this ID.")
 
     def show(self):
         if self.city_id:
@@ -239,16 +253,21 @@ class NearTheatre(CallObject):
         self._latitude = str(lat)
         self._longitude = str(lng)
 
+        try:
+            self.show()
+        except:
+            raise ValueError("Not found any near theatre in this latitude and longitude.")
+
         if str2bool(self.show()['tenPlus'], True) is not False:
             self.theatres = []
             for i in self.show()['tenPlus']:
 
                 self.theatres.append(Theatre(i))
 
-        if str2bool(self.show()['five'], True) is not False:
-            self.theatres = []
-            for i in self.show()['five']:
-                self.theatres.append(Theatre(i))
+                if str2bool(self.show()['five'], True) is not False:
+                    self.theatres = []
+                for i in self.show()['five']:
+                        self.theatres.append(Theatre(i))
 
     def show(self):
         return self.GET(
@@ -338,6 +357,11 @@ class NearestSeances(CallObject):
         self._latitude = str(lat)
         self._longitude = str(lng)
 
+        try:
+            self.show()
+        except:
+            raise ValueError("Not found the nearest seance of the movie in this latitude and longitude.")
+
         self.seances = []
         for i in self.show()['seances']:
             self.seances.append(datetime.datetime.strptime(i, '%H:%M'))
@@ -367,6 +391,9 @@ class TheatreSeance(CallObject):
         self.city_id = city_id
         self.movie_id = movie_id
 
+        if not str2bool(self.show()['movie']['id'], True):
+            raise ValueError("Not found any movie of this ID.")
+
         self.movie = Movie(movie=self.show()['movie'])
 
         self.theatres = []
@@ -390,6 +417,9 @@ class ArtistGallery(CallObject):
         self._path_name = "artist"
         self.artist_id = artist_id
 
+        if not str2bool(self.show(), True):
+            raise ValueError("Not found any artist of this ID.")
+
         self.gallery = []
         for i in self.show():
             self.gallery.append(i)
@@ -398,5 +428,5 @@ class ArtistGallery(CallObject):
         return self.GET(
             "gallery",
             self._path_name,
-            self.artist_id
+            self.artist_id,
         )
